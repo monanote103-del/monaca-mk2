@@ -102,7 +102,7 @@ def generate_fix(
     content_blocks: list[dict] = [
         {
             "type": "text",
-            "text": f"You are a senior software engineer. Generate a concise, correct fix.",
+            "text": "You are a senior software engineer. Generate a concise, correct fix.",
         }
     ]
 
