@@ -56,7 +56,7 @@ def validate_comment(
     comment_body: str,
     file_path: str,
     diff_hunk: str,
-) -> dict:
+) -> Optional[dict]:
     """Ask Claude whether the review comment is a legitimate concern."""
     response = client.messages.create(
         model="claude-sonnet-4-6",
@@ -87,7 +87,8 @@ def validate_comment(
     try:
         return extract_json(response.content[0].text)
     except (json.JSONDecodeError, IndexError):
-        return {"validity": "questionable", "severity": "minor", "explanation": "解析失敗", "should_fix": False}
+        print("Failed to parse validation JSON, skipping comment")
+        return None
 
 
 def generate_fix(
@@ -167,6 +168,9 @@ def handle_line_comment(event: dict) -> None:
 
     print(f"Validating comment on {file_path} ...")
     validation = validate_comment(client, comment_body, file_path, diff_hunk)
+    if validation is None:
+        print("Skipping comment: validation result unavailable")
+        return
     print(f"Validation: {json.dumps(validation, ensure_ascii=False)}")
 
     emoji = SEVERITY_EMOJI.get(validation.get("severity", "minor"), "🟡")
